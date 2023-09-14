@@ -1,40 +1,52 @@
-import { useState } from "react";
-import reactLogo from "./assets/react.svg";
-import "./App.css";
+import { useState } from 'react'
+import { useDisclosure } from '@mantine/hooks'
+import { Container, Title } from '@mantine/core'
+import CustomerList from './components/CustomerList/CustomerList'
+import AddServiceForm from './components/AddServiceFrom/AddServiceForm'
+import customers from './data/customers'
+import { Customer } from './types/customer'
+import { Service } from './types/service'
 
-function App() {
-  const [count, setCount] = useState(0);
+const App= () => {
+  const [opened, { open, close }] = useDisclosure(false)
+  const [customersData, setCustomersData] = useState<Customer[]>(customers)
+  const [selectedCustomer, setSelectedCustomer] = useState<number | null>(null)
+
+  const handleSaveService = (formData: Service): void => {
+    const updatedCustomersData = customersData.map(customer => ({
+      ...customer,
+    }))
+
+    if(selectedCustomer !== null){
+      updatedCustomersData[selectedCustomer].service?.push({
+        code: formData.code,
+        desc: formData.desc,
+        date: formData.date,
+        cost: formData.cost,
+      })
+      setCustomersData(updatedCustomersData)
+    }    
+  }
 
   return (
-    <div className="App">
-      <div>
-        <a href="https://reactjs.org" target="_blank" rel="noreferrer">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-        <a href="https://vitejs.dev" target="_blank" rel="noreferrer">
-          <img src="/vite.svg" className="logo" alt="Vite logo" />
-        </a>
-      </div>
-      <h1>React + Vite</h1>
-      <h2>On CodeSandbox!</h2>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR.
-        </p>
-
-        <p>
-          Tip: you can use the inspector button next to address bar to click on
-          components in the preview and open the code in the editor!
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </div>
-  );
+    <>
+      <Container size="xl" p="lg">
+        <Title align="left" mb="xl">
+          Customer Visits
+        </Title>
+        <CustomerList customers={customers} onClickAddService={(customer) => {
+            open()
+            setSelectedCustomer(customer)
+           }
+           } />
+        <AddServiceForm
+          onSave={handleSaveService}
+          isServiceFormOpened={opened}
+          closeServiceForm={close}
+        />
+      </Container>
+    </>
+  )
 }
 
-export default App;
+export default App
